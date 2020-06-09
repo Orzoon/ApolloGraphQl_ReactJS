@@ -6,9 +6,9 @@ Apollo-Graphql
 
 --> light dive into mutations, typedef, subscription
 
-//----------------------
-//--------TECH STACK-------
-//----------------------
+//---------------------->
+//--------TECH STACK------->
+//---------------------->
 ->React(Front-End)
 ->Node(Express) 
 ->MongoDB 
