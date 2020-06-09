@@ -9,10 +9,10 @@ Apollo-Graphql
 //----------------------//<br/>
 --------TECH STACK-------<br/>
 //----------------------//<br/>
-->React(Front-End)
-->Node(Express) 
-->MongoDB 
-->AWS-S3-Bucket(fileStorage)
+->React(Front-End)<br/>
+->Node(Express) <br/>
+->MongoDB <br/>
+->AWS-S3-Bucket(fileStorage)<br/>
 
---NOTE:::front-End is within the backend file --(Not decoupled :) )
+--NOTE:::front-End is within the backend file --(Not decoupled :) )<br/>
 -- So for front-End cd into front-End and yarn install
