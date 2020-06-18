@@ -6,7 +6,8 @@ export const useLogin = (initialValues) => {
     const [values, setValues] = useState(initialValues);
     const [errors, setErrors] = useState({})
     const [loggedIn, setLoggedIn] = useState(false);
-    const [token, setToken] = useState(null)
+    const [token, setToken] = useState(null);
+    const [loading, setLoading]= useState(false);
 
     function changeHandler(e){
         e.preventDefault();
@@ -20,6 +21,7 @@ export const useLogin = (initialValues) => {
     }
 
     async function submitHandler(e, values){
+            setLoading(true)
             e.preventDefault()
             // clearing out the initial Errors
             setErrors({})
@@ -72,9 +74,9 @@ export const useLogin = (initialValues) => {
                 document.cookie = "accessToken" + "=" +data.signInUser[0].accessToken
 
                 // set logged In true
+                setLoading(false)
                 setLoggedIn(true)
-                setToken(data.signInUser[0].accessToken)
-                
+                setToken(data.signInUser[0].accessToken)                
             }
             catch(error){
                 // no response or if graphql default errorObj
@@ -83,19 +85,21 @@ export const useLogin = (initialValues) => {
                 }else {
                     setErrors({errorMessage: "something went wrong try again later"})
                 }
+                setLoading(false)
                 // erros defined by me at backend--TODO
             }
     }
 
     // returning all the values and ...rest variables
-    return {values, changeHandler, submitHandler, errors, loggedIn, token}
+    return {values, changeHandler, submitHandler, errors, loggedIn, token, loading}
 }
 
 
 export const useRegister = (initialValues) => {
     const [values, setValues] = useState(initialValues);
     const [errors, setErrors] = useState({})
-    const [registered, setRegistered] = useState(false);
+    const [registered, setRegistered] = useState(null);
+    const [loading, setLoading] = useState(null)
 
 
     function changeHandler(e){
@@ -107,6 +111,7 @@ export const useRegister = (initialValues) => {
 
 
     async function registerHandler(e, values){
+        setLoading(true)
         e.preventDefault()
         // clearing out the initial Errors
         setErrors({})
@@ -154,6 +159,7 @@ export const useRegister = (initialValues) => {
             if(data.signUpUser.ok)
             {
                 setRegistered(true)
+                setLoading(false)
             }
 
             // setting registeresd to true and redirecting to login
@@ -166,12 +172,12 @@ export const useRegister = (initialValues) => {
                 setErrors({errorMessage: "something went wrong try again later"})
             }
             // erros defined by me at backend--TODO
+            setLoading(false)
         }
     }
 
-    return {values, changeHandler, errors, registerHandler, registered}
+    return {values, changeHandler, errors, registerHandler, registered, loading}
 }
-
 
 export const usePostForm = (initialValues) => {
     const {state:{token}} = useContext(AppContext)
@@ -182,7 +188,6 @@ export const usePostForm = (initialValues) => {
     function changeHandler(e){
         e.preventDefault();
         const {name, value} = e.target;
-
         // for file
         if(name === "file"){
             setValues({...values, [name]: e.target.files[0]})
@@ -217,13 +222,16 @@ export const usePostForm = (initialValues) => {
                 const wordLength = word.length
                 characterCount+=wordLength
             })
-            if(characterCount > 150){
-                errorObj.descriptionError = "Max limit is 150 characters"
+            if(characterCount > 300){
+                errorObj.descriptionError = "Max limit is 300 characters"
             }
-            if(characterCount < 10){
-                errorObj.descriptionError = "Min character count should be 10"
+            if(characterCount < 50){
+                errorObj.descriptionError = "Min limit is 50 characters"
             }
-
+            let match = /\r|\n/.exec(description);
+            if (match) {
+                errorObj.descriptionError = "No line breaks allowed"
+            }
             // check for file
             if(!file){
                 errorObj.fileError = "Select a file"
@@ -252,6 +260,7 @@ export const usePostForm = (initialValues) => {
             if(Object.keys(errors).length > 0){
                 // we have errors 
                 setErrors(errors)
+                setLoading(false)
                 return
             }
             // no Errors
@@ -322,7 +331,7 @@ export const usePostForm = (initialValues) => {
 
 
             const postPostMutation = `mutation {
-                postPost(title: "${values.title}", description:"${values.description}", imageURL:"${fileUrl}"){
+                postPost(title: "${values.title.toString()}", description:"${values.description.toString()}", imageURL:"${fileUrl.toString()}"){
                   ... on Error{
                     errorMessage
                   }
@@ -360,11 +369,10 @@ export const usePostForm = (initialValues) => {
             }
 
             //else setting
+            delete responseData.__typename;
             setPostData(responseData)
             setLoading(false)
-            
-
-
+           
         }catch(error){
             if(error && error.hasOwnProperty("errorMessage")){
                 setErrors(error)
@@ -376,4 +384,142 @@ export const usePostForm = (initialValues) => {
         }
     }
     return {values, changeHandler, submitHandler, errors, loading, postData}
+}
+
+export const useDeletePost = () => {
+    const {state:{token}} = useContext(AppContext)
+    const [deleteErrorMessage, setDeleteErrorMessage] = useState(null)
+    const [postDeleted, setPostDeleted] = useState(false)
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [deletedPostId, setDeletedPostId] = useState(null);
+
+    async function deletePostMethod(_id, fileName){
+        setPostDeleted(false)
+        setDeleteErrorMessage(null)
+        setDeleteLoading(true)
+        try{      
+            const DELETEMUTATION = `mutation{
+                deletePost(_id: "${_id}", fileName: "${fileName}")
+            }`  
+
+            const deleteRequest = await fetch(SERVERURI, {
+                method: "POST",
+                headers: {
+                    "authorization": `Bearer ${token}`,
+                    "content-type": "application/json"
+                },
+                body: JSON.stringify({query: DELETEMUTATION})
+            })
+
+
+            if(!deleteRequest.ok){
+                throw new Error("to catch block")
+            }
+
+            const {data} = await deleteRequest.json();
+            if(!data && !data.deletePost){
+                throw new Error("to catch block")
+            }
+            // successfully deleted
+            setDeletedPostId(_id)
+            setPostDeleted(true)
+            setDeleteLoading(false)
+        }catch(error){
+            setDeleteErrorMessage("Something went wrong, Try again Later!")
+            // upon some error
+            setDeletedPostId(null)
+            setPostDeleted(false)
+            setDeleteLoading(false);
+        }
+    }
+
+    return {deletePostMethod, postDeleted, deleteErrorMessage, deleteLoading,deletedPostId }
+}
+
+export const useUpdatePost = () => {
+    const {state:{token}, updatingDescriptionHandler} = useContext(AppContext)
+    const [updateErrorMessage, setUpdateErrorMessage] = useState(null)
+    const [postUpdated, setPostUpdated] = useState(false)
+    const [updateLoading, setUpdateLoading] = useState(false);
+
+
+    async function updatePostMethod(_id,currentDescription){
+        console.log("currentDescription", currentDescription)
+        setUpdateErrorMessage(null)
+        setPostUpdated(false)
+        // smae value return 
+        setUpdateErrorMessage(null)
+        // setting loading to true
+        setUpdateLoading(true)
+        // checking the previous and the current values--> no need to change if they are equal
+        // if(prevDescription.trim() === currentDescription.trim()){
+        //     setPostUpdated(true)
+        //     setUpdateLoading(false)
+        //     setPostUpdated(true)
+        //     return
+        // }
+        try{            
+            // checking for the fields
+            let characterCount = 0;
+            if(currentDescription.toString().trim().length === 0){
+                throw({errorMessage: "description cannot be empty"})
+            }
+
+
+            // not empty
+            currentDescription.toString().trim().split(" ").forEach((word) => {
+                const wordLength = word.length
+                characterCount+=wordLength
+            })
+            if(characterCount > 300){
+                throw({errorMessage: "Max limit is 300 characters"})
+            }
+            if(characterCount < 50){
+                 throw({errorMessage: "Min limit is 50 characters"})
+            }
+
+            let match = /\r|\n/.exec(currentDescription);
+            if (match) {
+                throw({errorMessage: "No line breaks allowed"})
+            }
+
+            console.log("hre")
+            const UPDATEMUTATION = `mutation{
+                updatePost(_id: "${_id}", description: "${currentDescription.trim()}")
+            }`  
+            const updateRequest = await fetch(SERVERURI, {
+                method: "POST",
+                headers: {
+                    "authorization": `Bearer ${token}`,
+                    "content-type": "application/json"
+                },
+                body: JSON.stringify({query: UPDATEMUTATION})
+            })
+
+
+            if(!updateRequest.ok){
+                throw new Error("to catch block")
+            }
+
+            const {data} = await updateRequest.json();
+            if(!data && !data.updatePost){
+                throw new Error("to catch block")
+            }
+            // successfully deleted
+            setPostUpdated(true)
+            setUpdateLoading(false)
+            updatingDescriptionHandler(_id,currentDescription)
+        }catch(error){
+            if(error.errorMessage){
+                setUpdateErrorMessage(error.errorMessage)
+            }
+            else{
+                setUpdateErrorMessage("Something went wrong, Try again Later!")
+            }
+            // upon some error
+            setPostUpdated(false)
+            setUpdateLoading(false)
+        }
+    }
+    return {updateErrorMessage, updatePostMethod, postUpdated, updateLoading}
 }

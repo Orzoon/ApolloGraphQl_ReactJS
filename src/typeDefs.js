@@ -52,9 +52,9 @@ const typeDefs = gql`
     ## UNIONS ##
     type Query {
        users: [UsersorError]!
-       posts(limit: Int!, skip: Int!): [PostsBox!]
+       posts(limit: Int!, skip: Int!, asc: Int!, userID: String!): [PostsBox!]
        user(_id: ID!): User!
-       totalPosts: totalPostsorError!
+       totalPosts(userID: String!): totalPostsorError!
     }
     ## MUTATIONS  ##
     type Mutation {
@@ -62,6 +62,8 @@ const typeDefs = gql`
         signInUser(email: String!, password: String!): [AccessResponseorError]!
         postPost(title: String!, description: String!, imageURL: String!): PostsBox!
         signUrl(fileType: String!):signedUrlorError 
+        deletePost(_id: String!, fileName: String!): Boolean!
+        updatePost(_id:String!, title:String, description:String!): Boolean
     }
 `;
 

@@ -78,18 +78,24 @@ module.exports = {
           console.log("usersError",error)
         }
       },
-      posts: async(parent, {limit, skip}, { models: {postModel: postModel},
+      posts: async(parent, {limit, skip, asc, userID}, { models: {postModel: postModel},
                                    models: {userModel: userModel},
                                   user
               })=>{
                 try{
+
+                  let matchParam = {}
+
+                  if(userID && userID !== "null"){
+                    matchParam = {"createdBy._id": mongoose.Types.ObjectId(userID)}
+                  }
+                  
                   const posts = await postModel.aggregate([
-                    {$match: {}},
+                    {$match: matchParam},
                     {$limit: limit},
                     {$skip: skip},
                     {$sort: {"createdAt": asc}}
-                  ])
-                
+                  ])             
                   if(!posts){
                     throw({errorMessage: "there are no posts at the moment"})
                   }
@@ -99,9 +105,15 @@ module.exports = {
                   return [error]
                 }
       },
-      totalPosts: async(parent, args,  {models: {postModel: postModel}}) => {
+      totalPosts: async(parent, {userID},  {models: {postModel: postModel}}) => {
                   try{
-                    const count = await postModel.countDocuments();
+                    let count;
+                    if(userID && userID !== "null"){
+                      count = await postModel.find({"createdBy._id": mongoose.Types.ObjectId(userID)}).countDocuments();
+                    }
+                    else {
+                      count = await postModel.countDocuments();
+                    }
                     return {count: count}
                   }catch(error){
                     return error
@@ -206,11 +218,12 @@ module.exports = {
         const newPost = await models.postModel.create({_id: mongoose.Types.ObjectId(), userID: user.userID, title, description, imageURL, createdBy})
         return newPost.toObject()
       }catch(error){
+        console.log("error", error)
         return error
       }
     },
 
-    signUrl: async(_,{fileType},{user,MYS3}) => {
+    signUrl: async(_,{fileType},{user,MYS3, models}) => {
         try{
           if(!user){
             return {
@@ -239,6 +252,46 @@ module.exports = {
         }catch(error){
           return error
         }
+    },
+
+    deletePost: async(_,{_id,fileName}, {user,MYS3, models}) => {
+      try{
+        if(!user){
+          console.log("no user")
+          return false
+        }
+        const fileSplit = fileName.split("/")
+        const actualFileName = fileSplit[fileSplit.length-1]
+        // first delete the image from the s3 bucket
+        const s3params = {
+          Bucket: process.env.AMAZON_BUCKETNAME,
+          Key: actualFileName
+        }
+        await MYS3.deleteObject(s3params,function(err,data){
+          if (err)    {throw new Error("returning false from catch")}
+          // successfull
+      }).promise();
+        // deleting the post from the model
+        await models.postModel.findOneAndDelete({_id: mongoose.Types.ObjectId(_id)})
+        return true
+      }catch(error){
+        console.log("deletePost", error)
+        return false
+      }
+    },
+
+    updatePost: async(_,{_id,title, description}, {user,models}) =>{
+      try{
+          if(!user){
+            throw new Error("return false")
+          }
+          // not checking wether the post is of user or not just updating for now :)
+          const post = await models.postModel.findOneAndUpdate({_id: mongoose.Types.ObjectId(_id)}, {description}, {useFindAndModify:false})
+          return true
+      }catch(error){
+        // for any error return false
+        return false
+      }
     }
   }
 }

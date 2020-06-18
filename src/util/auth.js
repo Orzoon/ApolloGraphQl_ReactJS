@@ -23,7 +23,7 @@ const generateTokens = async(userID) => {
         })
 
         const accessToken = await jwt.sign({userID: user._id, userType: user.userType, tokenType: "ACCESS"},process.env.TOKENSECRET,{
-            expiresIn: '10m'
+            expiresIn: '30m'
         })
 
         return {refreshToken, accessToken}

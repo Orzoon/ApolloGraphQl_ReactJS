@@ -4,6 +4,7 @@ import React, {useContext, useState} from "react";
 
 import {AppContext} from "../App";
 import {useLogin, useRegister} from "../utils/hooks";
+import {LoadingLineComponent} from "../utils/globals";
 
 
 const initialLoginValues = {
@@ -23,12 +24,19 @@ const initialRegisterValues = {
 }
 
 export default function Account(){
-    const {state:{loggedIn}} = useContext(AppContext)
-    const [register, setRegister] = useState(false)
+    const {state:{loggedIn}, logoutHandler} = useContext(AppContext)
+    const [register, setRegister] = useState(false);
+
     if(loggedIn){
         return(
-            <div className = "Form">
-                <p>You are alrady loggedIn</p>
+            <div className = "alreadyIn">
+                <p>You are already loggedIn!!</p>
+                <button className = "logoutButton"
+                        onClick = {(e) => {
+                            e.preventDefault();
+                            logoutHandler()
+                        }}
+                >Logout</button>
             </div>
         )   
     }
@@ -54,11 +62,14 @@ export default function Account(){
 
 function LoginForm({setRegister}){
     const {loginHandler} = useContext(AppContext)
-    const {values, changeHandler, submitHandler, errors, loggedIn, token} = useLogin(initialLoginValues)
+    const {values, changeHandler, submitHandler, errors, loggedIn, token, loading} = useLogin(initialLoginValues)
     if(loggedIn){
         setTimeout(() => {
             loginHandler(true,token)
         },300)
+    }
+    if(loading){
+        return <LoadingLineComponent/>
     }
     return (
      <form className = "LoginForm" onSubmit = {(e) => {
@@ -100,9 +111,12 @@ function LoginForm({setRegister}){
 }
 
 function RegisterForm({setRegister}){
-    const {values, changeHandler, errors, registerHandler, registered} = useRegister(initialRegisterValues)
+    const {values, changeHandler, errors, registerHandler, registered, loading} = useRegister(initialRegisterValues)
     if(registered){
         setRegister(false)
+    }
+    if(loading){
+        return <LoadingLineComponent/>
     }
     return (
         <form className = "RegisterForm" onSubmit= {(e) => {

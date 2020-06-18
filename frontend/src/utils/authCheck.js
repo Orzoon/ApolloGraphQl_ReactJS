@@ -4,7 +4,6 @@ export const checkUserStatus = async () => {
     try{
         const accessToken = getCookie("accessToken");
         const refreshToken = getCookie("refreshToken");
-        console.log("a",accessToken, "r",refreshToken)
         if(!accessToken || !refreshToken){
             throw new Error("no access")
         }
