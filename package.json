@@ -7,13 +7,13 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "apollo-server": "^2.14.2",
-    "apollo-server-express": "^2.14.2",
+    "apollo-server": "^2.15.0",
+    "apollo-server-express": "^2.15.0",
     "aws-sdk": "^2.691.0",
     "bcrypt": "^4.0.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "graphql": "0.12.3",
+    "graphql": "^15.1.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.16",
     "uuid": "^8.1.0"
