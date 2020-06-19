@@ -59,7 +59,7 @@ const initialValues = {
   postsLoading: false,
   initialLoading: true,
   radioAll: true,
-  graphiqlLink: "someLinkfor later"
+  graphiqlLink: "/graphql"
 }
 
 function App() {

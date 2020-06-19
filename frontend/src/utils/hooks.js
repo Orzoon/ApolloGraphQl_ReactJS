@@ -482,8 +482,6 @@ export const useUpdatePost = () => {
             if (match) {
                 throw({errorMessage: "No line breaks allowed"})
             }
-
-            console.log("hre")
             const UPDATEMUTATION = `mutation{
                 updatePost(_id: "${_id}", description: "${currentDescription.trim()}")
             }`  

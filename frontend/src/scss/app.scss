@@ -1401,7 +1401,6 @@ ul.Loader_PostCard{
     }
 }
 
-
 @media only screen and (min-width: 576px){
     .information{
         padding: 25px 20px;
@@ -1790,6 +1789,7 @@ div.PostCard{
         grid-row-gap: 15px;
         width: 100%;
         list-style-type: none;
+        align-items: start !important;
     }    
 }
 
@@ -2222,6 +2222,7 @@ div.PostCard{
         grid-row-gap: 15px;
         width: 100%;
         list-style-type: none;
+        align-items: start !important;
     }   
 }
 
@@ -2346,7 +2347,6 @@ div.Loader_TopRow{
         }
     }
 }
-
 ul.Loader_PostCard{
     display: grid;
     grid-template-columns: 1fr 1fr;

@@ -1,8 +1,9 @@
-require("dotenv").config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const AWS = require('aws-sdk');
+const path = require("path");
 const AWSconfig = {
     accessKeyId: process.env.AMAZON_ACCESS_KEY,
     secretAccessKey: process.env.AMAZON_SECRET_KEY,
@@ -41,9 +42,14 @@ app.use((req,res,next) => {
 })
 
 app.use(express.json());
-app.get("signedurl", (req, res) => {
-    
+
+app.use(express.static(path.join(__dirname, "public", "build")))
+
+app.get("/", function(req,res){
+    res.sendFile(path.join(__dirname, "public", "build", "index.html"))
 })
+
+
 
 const server = new ApolloServer({
     typeDefs, 
@@ -79,7 +85,9 @@ const server = new ApolloServer({
 
 //app.use(express.json())
 server.applyMiddleware({ app, path: '/graphql' })
-
+app.get("/*", function(req,res){
+    res.sendFile(path.join(__dirname, "public", "build", "index.html"))
+})
 
 mongoose.connect(process.env.mongooseURI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true}, (error) => {
     if(error){

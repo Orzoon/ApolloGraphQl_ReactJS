@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require('uuid')
 const utils = require("../src/util/auth");
 
+
 module.exports = {
   // --------------------UNION--------------------- //
   PostsBox:{
@@ -79,8 +80,9 @@ module.exports = {
         }
       },
       posts: async(parent, {limit, skip, asc, userID}, { models: {postModel: postModel},
-                                   models: {userModel: userModel},
-                                  user
+                                    models: {userModel: userModel},
+                                    user,
+                                    pubsub
               })=>{
                 try{
 
@@ -193,23 +195,8 @@ module.exports = {
               errorMessage: "Login to post"
             }
         }
-    
-        //----------------------------------//
-        //CHECKING THE FILE AND STREAMING
-        // if(file){
-        //   console.log("file", file)
-        //   const { stream, filename, mimetype, encoding } = await file;
-        // }
-        // let wordCount = 0;
-        // description.toString().trim().split(" ").forEach((word) => wordCount++)
-
-
-        // validate later-for now cient side validation is DONE
-        // if(wordCount < 6){
-        //   return {
-        //     errorMessage: "Post should contain at least 5 words"
-        //   }
-        // }
+        // validation handled from client side for now
+        
         const userInform = await models.userModel.findById(user.userID);
         const createdBy = {
           _id: mongoose.Types.ObjectId(userInform._id),
@@ -218,7 +205,6 @@ module.exports = {
         const newPost = await models.postModel.create({_id: mongoose.Types.ObjectId(), userID: user.userID, title, description, imageURL, createdBy})
         return newPost.toObject()
       }catch(error){
-        console.log("error", error)
         return error
       }
     },
