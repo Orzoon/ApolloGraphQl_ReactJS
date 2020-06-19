@@ -19,11 +19,11 @@ const generateTokens = async(userID) => {
         const user = await userModel.findOne({_id: mongoose.Types.ObjectId(userID)})
 
         const refreshToken = await jwt.sign({userID: user._id, userType: user.userType, tokenType: "REFRESH"},process.env.TOKENSECRET,{
-            expiresIn: '10m'
+            expiresIn: '50m'
         })
 
         const accessToken = await jwt.sign({userID: user._id, userType: user.userType, tokenType: "ACCESS"},process.env.TOKENSECRET,{
-            expiresIn: '30m'
+            expiresIn: '20m'
         })
 
         return {refreshToken, accessToken}
