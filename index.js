@@ -50,6 +50,10 @@ app.get("/", function(req,res){
 })
 
 
+const { ObjectId } = mongoose.Types;
+ObjectId.prototype.valueOf = function () {
+  return this.toString();
+};
 
 const server = new ApolloServer({
     typeDefs, 
