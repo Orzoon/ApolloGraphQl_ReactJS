@@ -58,6 +58,8 @@ ObjectId.prototype.valueOf = function () {
 const server = new ApolloServer({
     typeDefs, 
     resolvers, 
+    introspection: true,
+    playground: true,
     context: async ({ req, res }) => {
             const header = req.headers.authorization || "";
             const token = header.split(" ")[1];
@@ -89,9 +91,9 @@ const server = new ApolloServer({
 
 //app.use(express.json())
 server.applyMiddleware({ app, path: '/graphql' })
-app.get("/*", function(req,res){
-    res.sendFile(path.join(__dirname, "public", "build", "index.html"))
-})
+// app.get("/*", function(req,res){
+//     res.sendFile(path.join(__dirname, "public", "build", "index.html"))
+// })
 
 mongoose.connect(process.env.mongooseURI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true}, (error) => {
     if(error){
